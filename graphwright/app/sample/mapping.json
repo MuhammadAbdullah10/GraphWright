@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "settings": {
+    "dataNamespace": "http://example.org/valuation#",
+    "userEditedIri": "http://example.org/valuation#userEdited",
+    "provenance": {
+      "writeAxioms": true,
+      "editedBy": {"mode": "column", "value": "entered_by"},
+      "editedAt": {"mode": "column", "value": "entered_at"}
+    }
+  },
+  "nodes": [
+    {
+      "id": "client", "label": "Client", "classIri": "http://example.org/valuation#Client",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "hybrid", "prefix": "Client_", "pad": 0, "template": "{client_name|pascal}",
+                 "list": "Harbour Point Capital => HPC_Client\nMarlow Ridge Partners => MarlowRidge_Client",
+                 "listMatch": "key", "listKey": "client_name", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "client_p1", "propIri": "http://example.org/valuation#clientName", "source": "column", "column": "client_name", "constant": "", "datatype": "xsd:string", "format": "", "lang": "", "userEntered": false}
+      ]
+    },
+    {
+      "id": "company", "label": "Portfolio company", "classIri": "http://example.org/valuation#PortfolioCompany",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "template", "prefix": "PortfolioCompany_", "pad": 0, "template": "{company_name|pascal}",
+                 "list": "", "listMatch": "order", "listKey": "", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "company_p1", "propIri": "http://example.org/valuation#name", "source": "column", "column": "company_name", "constant": "", "datatype": "xsd:string", "format": "", "lang": "", "userEntered": false},
+        {"id": "company_p2", "propIri": "http://example.org/valuation#sector", "source": "column", "column": "sector", "constant": "", "datatype": "xsd:string", "format": "", "lang": "", "userEntered": true},
+        {"id": "company_p3", "propIri": "http://example.org/valuation#AcquisitionDate", "source": "column", "column": "acquisition_date", "constant": "", "datatype": "xsd:date", "format": "dd-mm-yyyy", "lang": "", "userEntered": false}
+      ]
+    },
+    {
+      "id": "valuation", "label": "Valuation process", "classIri": "http://example.org/valuation#ValuationProcess",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "template", "prefix": "ValuationProcess_", "pad": 0, "template": "{@node:company}_Valuation_{valuation_date|slug}",
+                 "list": "", "listMatch": "order", "listKey": "", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "valuation_p1", "propIri": "http://example.org/valuation#valuationDate", "source": "column", "column": "valuation_date", "constant": "", "datatype": "xsd:date", "format": "dd-mm-yyyy", "lang": "", "userEntered": false},
+        {"id": "valuation_p2", "propIri": "http://example.org/valuation#valuationPurpose", "source": "column", "column": "purpose", "constant": "", "datatype": "xsd:string", "format": "", "lang": "", "userEntered": false}
+      ]
+    },
+    {
+      "id": "financials", "label": "Current financials", "classIri": "http://example.org/valuation#CurrentFinancials",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "template", "prefix": "CurrentFinancials_", "pad": 0, "template": "{@node:company}_FY{fiscal_year}",
+                 "list": "", "listMatch": "order", "listKey": "", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "financials_p1", "propIri": "http://example.org/valuation#fiscalYear", "source": "column", "column": "fiscal_year", "constant": "", "datatype": "xsd:gYear", "format": "", "lang": "", "userEntered": false},
+        {"id": "financials_p2", "propIri": "http://example.org/valuation#revenue", "source": "column", "column": "revenue", "constant": "", "datatype": "xsd:decimal", "format": "", "lang": "", "userEntered": true},
+        {"id": "financials_p3", "propIri": "http://example.org/valuation#ebitda", "source": "column", "column": "ebitda", "constant": "", "datatype": "xsd:decimal", "format": "", "lang": "", "userEntered": false},
+        {"id": "financials_p4", "propIri": "http://example.org/valuation#netDebt", "source": "column", "column": "net_debt", "constant": "", "datatype": "xsd:decimal", "format": "", "lang": "", "userEntered": false}
+      ]
+    },
+    {
+      "id": "dcf", "label": "DCF", "classIri": "http://example.org/valuation#DCF",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "template", "prefix": "DCF_", "pad": 0, "template": "{@node:valuation}_DCF",
+                 "list": "", "listMatch": "order", "listKey": "", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "dcf_p1", "propIri": "http://example.org/valuation#discountRate", "source": "column", "column": "discount_rate", "constant": "", "datatype": "xsd:decimal", "format": "percent-fraction", "lang": "", "userEntered": false},
+        {"id": "dcf_p2", "propIri": "http://example.org/valuation#terminalGrowthRate", "source": "column", "column": "terminal_growth", "constant": "", "datatype": "xsd:decimal", "format": "percent-fraction", "lang": "", "userEntered": false}
+      ]
+    },
+    {
+      "id": "gcp", "label": "GCP", "classIri": "http://example.org/valuation#GCP",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "template", "prefix": "GCP_", "pad": 0, "template": "{@node:valuation}_GCP",
+                 "list": "", "listMatch": "order", "listKey": "", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "gcp_p1", "propIri": "http://example.org/valuation#evRevenueMultiple", "source": "column", "column": "ev_revenue_multiple", "constant": "", "datatype": "xsd:decimal", "format": "", "lang": "", "userEntered": false}
+      ]
+    },
+    {
+      "id": "gt", "label": "GT", "classIri": "http://example.org/valuation#GT",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "auto", "prefix": "GT_", "pad": 3, "template": "", "list": "", "listMatch": "order", "listKey": "", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "gt_p1", "propIri": "http://example.org/valuation#transactionMultiple", "source": "column", "column": "transaction_multiple", "constant": "", "datatype": "xsd:decimal", "format": "", "lang": "", "userEntered": false}
+      ]
+    },
+    {
+      "id": "backsolve", "label": "Backsolve", "classIri": "http://example.org/valuation#Backsolve",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "auto", "prefix": "Backsolve_", "pad": 3, "template": "", "list": "", "listMatch": "order", "listKey": "", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "backsolve_p1", "propIri": "http://example.org/valuation#roundPricePerShare", "source": "column", "column": "round_price", "constant": "", "datatype": "xsd:decimal", "format": "", "lang": "", "userEntered": false}
+      ]
+    },
+    {
+      "id": "postmoney", "label": "Post-money", "classIri": "http://example.org/valuation#PostMoney",
+      "scope": "row", "requireData": true,
+      "naming": {"mode": "template", "prefix": "PostMoney_", "pad": 0, "template": "{@node:valuation}_PostMoney",
+                 "list": "", "listMatch": "order", "listKey": "", "onMissing": "auto", "collision": "merge"},
+      "props": [
+        {"id": "postmoney_p1", "propIri": "http://example.org/valuation#postMoneyValuation", "source": "column", "column": "post_money", "constant": "", "datatype": "xsd:decimal", "format": "", "lang": "", "userEntered": false}
+      ]
+    }
+  ],
+  "links": [
+    {"id": "l1", "from": "client", "prop": "http://example.org/valuation#initiates", "to": "valuation"},
+    {"id": "l2", "from": "company", "prop": "http://example.org/valuation#hasValuation", "to": "valuation"},
+    {"id": "l3", "from": "company", "prop": "http://example.org/valuation#hasCurrentFinancials", "to": "financials"},
+    {"id": "l4", "from": "valuation", "prop": "http://example.org/valuation#hasMethodology", "to": "dcf"},
+    {"id": "l5", "from": "valuation", "prop": "http://example.org/valuation#hasMethodology", "to": "gcp"},
+    {"id": "l6", "from": "valuation", "prop": "http://example.org/valuation#hasMethodology", "to": "gt"},
+    {"id": "l7", "from": "valuation", "prop": "http://example.org/valuation#hasMethodology", "to": "backsolve"},
+    {"id": "l8", "from": "valuation", "prop": "http://example.org/valuation#hasMethodology", "to": "postmoney"}
+  ]
+}
