@@ -65,7 +65,7 @@ It also tracks **which values were entered by a user**: who entered them and whe
 
 ```bash
 # 1. Get the code
-git clone <your-repo-url> graphwright
+git clone https://github.com/MuhammadAbdullah10/GraphWright graphwright
 cd graphwright
 
 # 2. Create a virtual environment (recommended)
