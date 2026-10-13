@@ -1,0 +1,133 @@
+{
+  "provenance": {
+    "editedBy": "column:entered_by",
+    "editedAt": "column:entered_at"
+  },
+  "steps": [
+    {
+      "name": "Derive EBITDA margin",
+      "sparql": "# EBITDA / revenue, for financials that have both and no margin yet\nINSERT { ?f :ebitdaMargin ?margin }\nWHERE {\n  ?f a :CurrentFinancials ; :ebitda ?e ; :revenue ?r .\n  FILTER(?r != 0)\n  FILTER NOT EXISTS { ?f :ebitdaMargin ?any }\n  BIND(ROUND(?e / ?r * 10000) / 10000 AS ?margin)\n}"
+    }
+  ],
+  "queries": [
+    {
+      "name": "dcf-user-inputs",
+      "description": "DCF inputs entered by users, with company, user and time",
+      "sparql": "SELECT ?company ?dcf ?field ?value ?editedBy ?editedAt WHERE {\n  ?dcf a :DCF ;\n       :userEdited ?field ;\n       ?field ?value .\n  OPTIONAL {\n    ?ax owl:annotatedSource ?dcf ;\n        owl:annotatedProperty :userEdited ;\n        owl:annotatedTarget ?field ;\n        :editedBy ?editedBy ;\n        :editedAt ?editedAt .\n  }\n  OPTIONAL { ?v :hasMethodology ?dcf . ?c :hasValuation ?v ; :name ?company . }\n}\nORDER BY ?company ?field"
+    },
+    {
+      "name": "company-financials",
+      "description": "Latest financials per company",
+      "sparql": "SELECT ?company ?fiscalYear ?revenue ?ebitda ?margin WHERE {\n  ?c a :PortfolioCompany ; :name ?company ; :hasCurrentFinancials ?f .\n  ?f :fiscalYear ?fiscalYear ; :revenue ?revenue .\n  OPTIONAL { ?f :ebitda ?ebitda }\n  OPTIONAL { ?f :ebitdaMargin ?margin }\n}\nORDER BY ?company ?fiscalYear"
+    }
+  ],
+  "classes": {
+    "client": {
+      "class": ":Client",
+      "name": "{client_name|pascal}",
+      "names": {
+        "Harbour Point Capital": "HPC_Client",
+        "Marlow Ridge Partners": "MarlowRidge_Client"
+      },
+      "namesKey": "client_name",
+      "columns": {
+        "client_name": ":clientName"
+      }
+    },
+    "company": {
+      "class": ":PortfolioCompany",
+      "name": "{company_name|pascal}",
+      "columns": {
+        "company_name": ":name",
+        "sector": {
+          "attr": ":sector",
+          "user": true
+        },
+        "acquisition_date": {
+          "attr": ":AcquisitionDate",
+          "format": "dd-mm-yyyy"
+        }
+      }
+    },
+    "valuation": {
+      "class": ":ValuationProcess",
+      "name": "{@node:company}_Valuation_{valuation_date|slug}",
+      "columns": {
+        "valuation_date": {
+          "attr": ":valuationDate",
+          "format": "dd-mm-yyyy"
+        },
+        "purpose": ":valuationPurpose"
+      }
+    },
+    "financials": {
+      "class": ":CurrentFinancials",
+      "name": "{@node:company}_FY{fiscal_year}",
+      "columns": {
+        "fiscal_year": ":fiscalYear",
+        "revenue": {
+          "attr": ":revenue",
+          "user": true
+        },
+        "ebitda": ":ebitda",
+        "net_debt": ":netDebt"
+      }
+    },
+    "dcf": {
+      "class": ":DCF",
+      "label": "DCF",
+      "name": "{@node:valuation}_DCF",
+      "columns": {
+        "discount_rate": {
+          "attr": ":discountRate",
+          "user": true,
+          "format": "percent-fraction"
+        },
+        "terminal_growth": {
+          "attr": ":terminalGrowthRate",
+          "format": "percent-fraction"
+        }
+      }
+    },
+    "gcp": {
+      "class": ":GCP",
+      "label": "GCP",
+      "name": "{@node:valuation}_GCP",
+      "columns": {
+        "ev_revenue_multiple": ":evRevenueMultiple"
+      }
+    },
+    "gt": {
+      "class": ":GT",
+      "label": "GT",
+      "name": "GT_{@n:3}",
+      "columns": {
+        "transaction_multiple": ":transactionMultiple"
+      }
+    },
+    "backsolve": {
+      "class": ":Backsolve",
+      "name": "Backsolve_{@n:3}",
+      "columns": {
+        "round_price": ":roundPricePerShare"
+      }
+    },
+    "postmoney": {
+      "class": ":PostMoney",
+      "name": "{@node:valuation}_PostMoney",
+      "columns": {
+        "post_money": ":postMoneyValuation"
+      }
+    }
+  },
+  "links": [
+    "client :initiates valuation",
+    "company :hasValuation valuation",
+    "company :hasCurrentFinancials financials",
+    "valuation :hasMethodology dcf",
+    "valuation :hasMethodology gcp",
+    "valuation :hasMethodology gt",
+    "valuation :hasMethodology backsolve",
+    "valuation :hasMethodology postmoney"
+  ]
+}

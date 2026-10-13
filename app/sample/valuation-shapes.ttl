@@ -1,0 +1,77 @@
+@prefix :     <http://example.org/valuation#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# Sample SHACL shapes for the valuation ontology.
+# Two deliberate findings in the sample data: Kestrel Payments has no acquisition date,
+# and Northwind Analytics FY2025 has two revenue values.
+
+:PortfolioCompanyShape a sh:NodeShape ;
+    sh:targetClass :PortfolioCompany ;
+    sh:property [
+        sh:path :name ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "A portfolio company needs exactly one name." ;
+    ] ;
+    sh:property [
+        sh:path :AcquisitionDate ;
+        sh:minCount 1 ;
+        sh:datatype xsd:date ;
+        sh:message "Acquisition date is missing." ;
+    ] ;
+    sh:property [
+        sh:path :sector ;
+        sh:in ( "IT" "Industrials" "Healthcare" "Consumer" "Energy" "Financials" ) ;
+        sh:message "Sector is not one of the approved values." ;
+    ] .
+
+:CurrentFinancialsShape a sh:NodeShape ;
+    sh:targetClass :CurrentFinancials ;
+    sh:property [
+        sh:path :revenue ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:message "Revenue must be a single, non-negative decimal." ;
+    ] ;
+    sh:property [
+        sh:path :fiscalYear ;
+        sh:minCount 1 ;
+        sh:message "Fiscal year is missing." ;
+    ] ;
+    sh:property [
+        sh:path :ebitdaMargin ;
+        sh:minInclusive -1 ; sh:maxInclusive 1 ;
+        sh:severity sh:Warning ;
+        sh:message "EBITDA margin outside -100%..100%; check revenue and EBITDA." ;
+    ] .
+
+:DCFShape a sh:NodeShape ;
+    sh:targetClass :DCF ;
+    sh:property [
+        sh:path :discountRate ;
+        sh:minCount 1 ;
+        sh:minExclusive 0 ; sh:maxExclusive 0.5 ;
+        sh:message "Discount rate must be between 0 and 50% (stored as a fraction)." ;
+    ] ;
+    sh:property [
+        sh:path :terminalGrowthRate ;
+        sh:maxExclusive 0.1 ;
+        sh:severity sh:Warning ;
+        sh:message "Terminal growth above 10% is unusual." ;
+    ] .
+
+:ValuationProcessShape a sh:NodeShape ;
+    sh:targetClass :ValuationProcess ;
+    sh:property [
+        sh:path :valuationDate ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        sh:message "A valuation needs exactly one valuation date." ;
+    ] ;
+    sh:property [
+        sh:path :hasMethodology ;
+        sh:minCount 1 ;
+        sh:message "A valuation needs at least one methodology." ;
+    ] .

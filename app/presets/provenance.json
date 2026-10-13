@@ -1,0 +1,48 @@
+{
+  "_help": [
+    "Provenance patterns. Each one says how a user-entered value is recorded in the graph, and how to read it back.",
+    "Add your own by copying an entry and giving it a new id. No code changes are needed; restart the app to load it.",
+    "Variables available in 'write' (a SPARQL INSERT template, one solution per user-entered value):",
+    "  ?subject   the individual        ?property  the attribute        ?value  the value",
+    "  ?user      who entered it (text) ?userIri   an IRI built from ?user (data namespace + 'user_' + id)",
+    "  ?time      when (xsd:dateTime)   ?flag      the user-edited property from settings    ?class  the individual's class",
+    "A variable with no value (e.g. no user given) simply leaves out the triples that use it.",
+    "'read' is a SPARQL graph pattern that must bind ?subject and ?property, and may bind ?user and ?time.",
+    "'declarations' is Turtle added once to the output, for terms the ontology doesn't already declare.",
+    "The ':' prefix always means the ontology namespace; rdf, rdfs, owl, xsd and every ontology prefix are available."
+  ],
+  "presets": [
+    {
+      "id": "axiom-text",
+      "name": "OWL axiom, user as text",
+      "description": "Flags the field with :userEdited and records who (plain text) and when on an owl:Axiom attached to that statement. The default.",
+      "write": "?subject ?flag ?property .\n[] a owl:Axiom ;\n   owl:annotatedSource   ?subject ;\n   owl:annotatedProperty ?flag ;\n   owl:annotatedTarget   ?property ;\n   :editedBy ?user ;\n   :editedAt ?time .",
+      "read": "?subject ?flag ?property .\nOPTIONAL {\n  ?ax owl:annotatedSource ?subject ;\n      owl:annotatedProperty ?flag ;\n      owl:annotatedTarget ?property .\n  OPTIONAL { ?ax :editedBy ?user }\n  OPTIONAL { ?ax :editedAt ?time }\n}",
+      "declarations": ":editedBy a owl:AnnotationProperty ;\n    rdfs:label \"edited by\"@en ;\n    rdfs:comment \"Identifier of the user who entered or edited the field referenced by a :userEdited assertion.\"@en ;\n    rdfs:range xsd:string .\n:editedAt a owl:AnnotationProperty ;\n    rdfs:label \"edited at\"@en ;\n    rdfs:comment \"Timestamp of the user edit referenced by a :userEdited assertion.\"@en ;\n    rdfs:range xsd:dateTime ."
+    },
+    {
+      "id": "axiom-user-individual",
+      "name": "OWL axiom, user as individual",
+      "description": "Like the default, but each user becomes a :User individual with a :userId, and :editedBy points to it.",
+      "write": "?subject ?flag ?property .\n?userIri a :User ; :userId ?user .\n[] a owl:Axiom ;\n   owl:annotatedSource   ?subject ;\n   owl:annotatedProperty ?flag ;\n   owl:annotatedTarget   ?property ;\n   :editedBy ?userIri ;\n   :editedAt ?time .",
+      "read": "?subject ?flag ?property .\nOPTIONAL {\n  ?ax owl:annotatedSource ?subject ;\n      owl:annotatedProperty ?flag ;\n      owl:annotatedTarget ?property .\n  OPTIONAL { ?ax :editedBy ?u . OPTIONAL { ?u :userId ?uid } }\n  OPTIONAL { ?ax :editedAt ?time }\n}\nBIND(COALESCE(?uid, ?u) AS ?user)",
+      "declarations": ":editedBy a owl:AnnotationProperty ; rdfs:label \"edited by\"@en .\n:editedAt a owl:AnnotationProperty ; rdfs:label \"edited at\"@en ; rdfs:range xsd:dateTime .\n:User a owl:Class ; rdfs:label \"User\"@en .\n:userId a owl:DatatypeProperty ; rdfs:domain :User ; rdfs:range xsd:string ."
+    },
+    {
+      "id": "flag-only",
+      "name": "Flag only",
+      "description": "Only records which fields were user-entered (:userEdited), without who or when.",
+      "write": "?subject ?flag ?property .",
+      "read": "?subject ?flag ?property .",
+      "declarations": ""
+    },
+    {
+      "id": "rdf-reification",
+      "name": "RDF reification",
+      "description": "Describes each user-entered statement with an rdf:Statement node carrying who and when. No :userEdited flag.",
+      "write": "[] a rdf:Statement ;\n   rdf:subject   ?subject ;\n   rdf:predicate ?property ;\n   rdf:object    ?value ;\n   :editedBy ?user ;\n   :editedAt ?time .",
+      "read": "?st a rdf:Statement ;\n    rdf:subject ?subject ;\n    rdf:predicate ?property .\nOPTIONAL { ?st :editedBy ?user }\nOPTIONAL { ?st :editedAt ?time }",
+      "declarations": ":editedBy a owl:AnnotationProperty ; rdfs:label \"edited by\"@en ; rdfs:range xsd:string .\n:editedAt a owl:AnnotationProperty ; rdfs:label \"edited at\"@en ; rdfs:range xsd:dateTime ."
+    }
+  ]
+}
